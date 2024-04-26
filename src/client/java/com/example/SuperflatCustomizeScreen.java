@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.widgets.BiomeEntry;
 import com.example.widgets.Expandable;
 import com.example.widgets.LayerWidget;
 import com.example.widgets.PresetEntry;
@@ -11,6 +12,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.world.CustomizeFlatLevelScreen;
@@ -66,6 +68,13 @@ public class SuperflatCustomizeScreen extends BaseOwoScreen<FlowLayout> {
     public SuperflatCustomizeScreen(CreateWorldScreen parent) {
         this.parent = parent;
 
+        FabricLoader.getInstance().getModContainer("dw").get().getMetadata().getIconPath(16);
+
+        for (var e : FabricLoader.getInstance().getAllMods()) {
+            System.out.println(e.getMetadata().getId() + " - " + e.getMetadata().getIconPath(16));
+        }
+
+
         gen = parent.getWorldCreator().getGeneratorOptionsHolder();
         ChunkGenerator chunkGenerator = gen.selectedDimensions().getChunkGenerator();
         DynamicRegistryManager.Immutable dynamicRegistryManager = gen.getCombinedRegistryManager();
@@ -91,6 +100,11 @@ public class SuperflatCustomizeScreen extends BaseOwoScreen<FlowLayout> {
         selectedPreset = preset;
         System.out.println(Utils.getConfigString(selectedPreset.settings(), true));
         presetText.text(Utils.getConfigString(selectedPreset.settings(), true));
+        listB.clearChildren();
+        buildListB();
+    }
+
+    public void setBiome(RegistryKey<Biome> biome) {
         listB.clearChildren();
         buildListB();
     }
@@ -157,12 +171,18 @@ public class SuperflatCustomizeScreen extends BaseOwoScreen<FlowLayout> {
         left.child(Containers.horizontalFlow(Sizing.fill(), Sizing.content()).child(vanilla).child(custom));
 
         FlowLayout listA = Containers.verticalFlow(Sizing.fill(), Sizing.content());
-        for (var preset : vanillaPresets) {
-            PresetEntry entry = new PresetEntry(this, preset);
-            if (selectedPreset == preset.getLeft())
-                entry.select();
-            listA.child(entry);
+        for (RegistryKey<Biome> key : gen.getCombinedRegistryManager().get(RegistryKeys.BIOME).getKeys()) {
+            listA.child(new BiomeEntry(this, key));
+            if (!key.getValue().toString().contains("ocean"))
+                System.out.println(key.getValue());
         }
+
+//        for (var preset : vanillaPresets) {
+//            PresetEntry entry = new PresetEntry(this, preset);
+//            if (selectedPreset == preset.getLeft())
+//                entry.select();
+//            listA.child(entry);
+//        }
         left.child(Containers.verticalScroll(Sizing.fill(), Sizing.fill(),listA).scrollbar(ScrollContainer.Scrollbar.vanillaFlat()).scrollbarThiccness(6).surface(OPTIONS_LIST).margins(Insets.of(4)));
         main.child(0, left);
 
@@ -185,31 +205,6 @@ public class SuperflatCustomizeScreen extends BaseOwoScreen<FlowLayout> {
         listB.child( infoLine("Biome ",
                 text(WordUtils.capitalize(I18n.translate("biome." + selectedPreset.settings().getBiome().getKey().get().getValue().toTranslationKey())))));
 
-//        FlowLayout list = Containers.verticalFlow(Sizing.content(), Sizing.content());
-//        list.horizontalAlignment(HorizontalAlignment.RIGHT);
-////        list.zIndex(1000);
-//        var scroll = Containers.verticalScroll(Sizing.fill(), Sizing.fill(50), list);
-//        scroll.surface(Surface.TOOLTIP);
-//        scroll.zIndex(1000);
-//
-//        int maxSize = 0;
-//        for (RegistryKey<Biome> key : gen.getCombinedRegistryManager().get(RegistryKeys.BIOME).getKeys()) {
-//            String text = WordUtils.capitalize(I18n.translate("biome." + key.getValue().toTranslationKey()));
-//            list.child(text(text));
-//            int size = client.textRenderer.getWidth(text);
-//            if (size > maxSize)
-//                maxSize = size;
-//        }
-//
-//        LabelComponent bbiome = text(WordUtils.capitalize(I18n.translate("biome." + selectedPreset.settings().getBiome().getKey().get().getValue().toTranslationKey())));
-//        int finalMaxSize = maxSize;
-//        bbiome.mouseDown().subscribe((mouseX, mouseY, button) -> {
-//            if (scroll.hasParent()) return false;
-//            root.child(scroll.positioning(Positioning.absolute(bbiome.x() - finalMaxSize - 8, bbiome.y() + bbiome.height())));
-//            return true;
-//        });
-//
-//        listB.child( infoLine("Biome ", bbiome) );
 
 //selectedPreset.settings().hasFeatures
         var expandable = new Expandable("Biome Features", text(selectedPreset.settings().hasFeatures ? "§a✔" : "§c\uD83D\uDDD9"));

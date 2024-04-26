@@ -16,6 +16,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.gen.chunk.FlatChunkGeneratorLayer;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LayerWidget extends BaseComponent {
     private static final Identifier SLOT_TEXTURE = new Identifier("container/slot");
     private static final MinecraftClient client = MinecraftClient.getInstance();
@@ -74,4 +77,5 @@ public class LayerWidget extends BaseComponent {
     protected int determineVerticalContentSize(Sizing sizing) {
         return 18 + 4;
     }
+
 }
